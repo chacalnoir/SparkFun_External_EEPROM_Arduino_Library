@@ -59,6 +59,11 @@
 #define I2C_BUFFER_LENGTH_RX BUFFER_LENGTH //BUFFER_LENGTH is defined in Wire.h for STM32
 #define I2C_BUFFER_LENGTH_TX BUFFER_LENGTH
 
+#elif defined (ARDUINO_ARCH_RP2040)
+
+#define I2C_BUFFER_LENGTH_RX 256 //BUFFER_LENGTH is defined in Wire.h, but with a magic number
+#define I2C_BUFFER_LENGTH_TX 256
+
 #else
 
 #pragma GCC warning "This platform doesn't have a wire buffer size defined. Defaulting to 32 bytes. Please contribute to this library!"
