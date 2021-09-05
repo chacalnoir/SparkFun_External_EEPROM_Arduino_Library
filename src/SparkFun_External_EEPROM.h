@@ -83,6 +83,7 @@ struct struct_memorySettings
   uint8_t pageWriteTime_ms;
   bool pollForWriteComplete;
   uint16_t i2cBufferSize;
+  uint8_t checkBusyTimeouts;
 };
 
 class ExternalEEPROM
@@ -136,6 +137,7 @@ private:
       .pageSize_bytes = 64,
       .pageWriteTime_ms = 5,
       .pollForWriteComplete = true,
+      .checkBusyTimeouts = 4,  // After 4 checks and the system is still busy, break out of read or write and return. Ignore if 0.
   };
 };
 

@@ -132,8 +132,9 @@ uint8_t ExternalEEPROM::read(uint32_t eepromLocation)
 //Handles a read that straddles the 512kbit barrier
 void ExternalEEPROM::read(uint32_t eepromLocation, uint8_t *buff, uint16_t bufferSize)
 {
+  bool timedOut = false;
   uint16_t received = 0;
-  while (received < bufferSize)
+  while (!timedOut && (received < bufferSize))
   {
     //Limit the amount to write to a page size
     uint16_t amtToRead = bufferSize - received;
@@ -157,8 +158,15 @@ void ExternalEEPROM::read(uint32_t eepromLocation, uint8_t *buff, uint16_t buffe
     }
 
     //See if EEPROM is available or still writing a previous request
-    while (settings.pollForWriteComplete && isBusy(i2cAddress) == true) //Poll device
+    uint8_t delayCounter = 0;
+    while (settings.pollForWriteComplete && isBusy(i2cAddress) == true) { //Poll device
       delayMicroseconds(100);          //This shortens the amount of time waiting between writes but hammers the I2C bus
+      delayCounter++;
+      if((settings.checkBusyTimeouts > 0) && (delayCounter >= settings.checkBusyTimeouts)) {
+        timedOut = true;
+        break;
+      }
+    }
 
     settings.i2cPort->beginTransmission(i2cAddress);
     settings.i2cPort->write((uint8_t)((eepromLocation + received) >> 8));   // MSB
@@ -194,8 +202,9 @@ void ExternalEEPROM::write(uint32_t eepromLocation, const uint8_t *dataToWrite, 
     maxWriteSize = I2C_BUFFER_LENGTH_TX - 2; //Arduino has 32 byte limit. We loose two to the EEPROM address
 
   //Break the buffer into page sized chunks
+  bool timedOut = false;
   uint16_t recorded = 0;
-  while (recorded < bufferSize)
+  while (!timedOut && (recorded < bufferSize))
   {
     //Limit the amount to write to either the page size or the Arduino limit of 30
     int amtToWrite = bufferSize - recorded;
@@ -221,8 +230,15 @@ void ExternalEEPROM::write(uint32_t eepromLocation, const uint8_t *dataToWrite, 
     }
 
     //See if EEPROM is available or still writing a previous request
-    while (settings.pollForWriteComplete && isBusy(i2cAddress) == true) //Poll device
+    uint8_t delayCounter = 0;
+    while (settings.pollForWriteComplete && isBusy(i2cAddress) == true) { //Poll device
       delayMicroseconds(100);          //This shortens the amount of time waiting between writes but hammers the I2C bus
+      delayCounter++;
+      if((settings.checkBusyTimeouts > 0) && (delayCounter >= settings.checkBusyTimeouts)) {
+        timedOut = true;
+        break;
+      }
+    }
 
     settings.i2cPort->beginTransmission(i2cAddress);
     settings.i2cPort->write((uint8_t)((eepromLocation + recorded) >> 8));   // MSB
