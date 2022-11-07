@@ -115,7 +115,7 @@ void ExternalEEPROM::disablePollForWriteComplete()
 {
   settings.pollForWriteComplete = false;
 }
-uint16_t ExternalEEPROM::getI2CBufferSize()
+constexpr uint16_t ExternalEEPROM::getI2CBufferSize()
 {
   return I2C_BUFFER_LENGTH_TX;
 }
@@ -169,7 +169,8 @@ void ExternalEEPROM::read(uint32_t eepromLocation, uint8_t *buff, uint16_t buffe
     }
 
     settings.i2cPort->beginTransmission(i2cAddress);
-    settings.i2cPort->write((uint8_t)((eepromLocation + received) >> 8));   // MSB
+    if(getMemorySize() > 2048)
+      settings.i2cPort->write((uint8_t)((eepromLocation + received) >> 8));   // MSB
     settings.i2cPort->write((uint8_t)((eepromLocation + received) & 0xFF)); // LSB
     settings.i2cPort->endTransmission();
 
@@ -241,7 +242,8 @@ void ExternalEEPROM::write(uint32_t eepromLocation, const uint8_t *dataToWrite, 
     }
 
     settings.i2cPort->beginTransmission(i2cAddress);
-    settings.i2cPort->write((uint8_t)((eepromLocation + recorded) >> 8));   // MSB
+    if(getMemorySize() > 2048)
+      settings.i2cPort->write((uint8_t)((eepromLocation + recorded) >> 8));   // MSB
     settings.i2cPort->write((uint8_t)((eepromLocation + recorded) & 0xFF)); // LSB
     for (uint8_t x = 0; x < amtToWrite; x++)
       settings.i2cPort->write(dataToWrite[recorded + x]);

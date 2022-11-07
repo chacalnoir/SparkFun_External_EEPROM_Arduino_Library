@@ -54,15 +54,25 @@
 #define I2C_BUFFER_LENGTH_RX I2C_BUFFER_LENGTH
 #define I2C_BUFFER_LENGTH_TX I2C_BUFFER_LENGTH
 
+#elif defined(ESP8266)
+
+#define I2C_BUFFER_LENGTH_RX BUFFER_LENGTH //BUFFER_LENGTH is defined in Wire.h for ESP8266
+#define I2C_BUFFER_LENGTH_TX BUFFER_LENGTH
+
 #elif defined(STM32)
 
 #define I2C_BUFFER_LENGTH_RX BUFFER_LENGTH //BUFFER_LENGTH is defined in Wire.h for STM32
 #define I2C_BUFFER_LENGTH_TX BUFFER_LENGTH
 
-#elif defined (ARDUINO_ARCH_RP2040)
+#elif defined(NRF52_SERIES)
 
-#define I2C_BUFFER_LENGTH_RX 256 //BUFFER_LENGTH is defined in Wire.h, but with a magic number
-#define I2C_BUFFER_LENGTH_TX 256
+#define I2C_BUFFER_LENGTH_RX SERIAL_BUFFER_SIZE //Adafruit Bluefruit nRF52 Boards uses RingBuffer.h
+#define I2C_BUFFER_LENGTH_TX SERIAL_BUFFER_SIZE
+
+#elif defined(ARDUINO_ARCH_RP2040)
+
+#define I2C_BUFFER_LENGTH_RX WIRE_BUFFER_SIZE //128 - defined in Wire.h (provided by pico-arduino-compat)
+#define I2C_BUFFER_LENGTH_TX WIRE_BUFFER_SIZE
 
 #else
 
@@ -109,7 +119,7 @@ public:
   uint8_t getPageWriteTime();
   void enablePollForWriteComplete(); //Most EEPROMs all I2C polling of when a write has completed
   void disablePollForWriteComplete();
-  uint16_t getI2CBufferSize(); //Return the size of the TX buffer
+  constexpr uint16_t getI2CBufferSize(); //Return the size of the TX buffer
 
   //Functionality to 'get' and 'put' objects to and from EEPROM.
   template <typename T>
@@ -129,15 +139,15 @@ public:
   }
 
 private:
-  //Variables
+  // Default settings are for onsemi CAT24C51 512Kbit I2C EEPROM used on SparkFun Qwiic EEPROM Breakout
   struct_memorySettings settings = {
       .i2cPort = &Wire,
-      .deviceAddress = 0b1010000, //0b1010 + (A2 A1 A0) or 0b1010 + (B0 A1 A0) for larger (>512kbit) EEPROMs
-      .memorySize_bytes = 512000 / 8,
+      .deviceAddress = 0b1010000, 			// 0x50; format is 0b1010 + (A2 A1 A0) or 0b1010 + (B0 A1 A0) for larger (>512kbit) EEPROMs
+      .memorySize_bytes = 512 * 1024 / 8,	// equals 64 KB
       .pageSize_bytes = 64,
       .pageWriteTime_ms = 5,
       .pollForWriteComplete = true,
-      .checkBusyTimeouts = 4,  // After 4 checks and the system is still busy, break out of read or write and return. Ignore if 0.
+      .checkBusyTimeouts = 4  // After 4 checks and the system is still busy, break out of read or write and return. Ignore if 0.
   };
 };
 
