@@ -1,6 +1,6 @@
 /*
-  @brief Test an RPi Pico with EEPROM set up for the T-RECS.
-  @author Joel Dunham <joel.dunham@tangiblesthatteach.com>
+  @brief Test an RPi Pico with EEPROM set up.
+  @author chacalnoir <joel.ph.dunham@gmail.com>
   @date 2021/08/11
 
   Raspberry Pi Pico
